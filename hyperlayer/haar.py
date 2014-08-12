@@ -4,8 +4,15 @@ def detectFaces(image):
     
     image -- input image to be detected
     """
-    
-    pass
+    #setup parameters
+    detector_scale_factor = 1.1
+    detector_minimum_neighbors = 3 
+    detector_minimum_size_square = 50
+    detector_maximum_size_square = 400
+    detector_path = 'data/haarcascade_frontalface_alt.xml'
+    cascade = cv2.CascadeClassifier(detector_path)
+    boxes = cascade.detectMultiScale(image, scaleFactor=detector_scale_factor, minNeighbors=detector_minimum_neighbors, minSize=(detector_minimum_size_square, detector_minimum_size_square), maxSize=(detector_maximum_size_square, detector_maximum_size_square), flags=cv2.cv.CV_HAAR_SCALE_IMAGE)
+    return boxes
     
 def muxBoxes(boxes, minSize=(0,0)):
     """
@@ -15,4 +22,4 @@ def muxBoxes(boxes, minSize=(0,0)):
     minSize -- boxes below this size (both width and height) will be discarded
     """
     
-    pass
+    return boxes
