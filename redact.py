@@ -65,7 +65,7 @@ def redactVideo(video, blurType):
             hyperframe = {'frameNumber':frame_count, 'faces':muxedFaces}
             hyperframes.append(hyperframe)
     
-    hyperframe = morphology.erode(hyperframes)
+    hyperframes = morphology.erode(hyperframes)
     
     events = event.generateEvents(hyperframes)
     blur.blurVideo(events, video, blurType)

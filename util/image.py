@@ -1,4 +1,4 @@
-from PIL import ImageOps
+from PIL import ImageOps, Image
 
 def adjustImage(image):
     """
@@ -7,7 +7,7 @@ def adjustImage(image):
     image -- input image to be adjusted
     type -- string representing adjustment type
     """
-    
+    image = Image.fromarray(image)
     image = ImageOps.grayscale(image)
     image = ImageOps.autocontrast(image)
     return image
