@@ -29,10 +29,10 @@ def erode(hyperframes):
     '''
     
     outputList = []
-    for i, eachHyperframe in enumerate(inputList):
+    for i, eachHyperframe in enumerate(hyperframes):
         try:
-            prevFrame = inputList[i-1]
-            nextFrame = inputList[i+1]
+            prevFrame = hyperframes[i-1]
+            nextFrame = hyperframes[i+1]
         except Exception as e:
             outputList.append(eachHyperframe)
         if len(eachHyperframe['faces']) == len(prevFrame['faces']) or len(eachHyperframe['faces']) == len(nextFrame['faces']):
