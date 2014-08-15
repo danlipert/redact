@@ -60,7 +60,16 @@ def redactVideo(video, blurType, videoPath):
     cascades = []
     detector_paths = ['data/haarcascade_frontalface_alt_tree.xml',
         'data/haarcascade_frontalface_default.xml',
-        'data/haarcascade_upperbody.xml']
+        'data/haarcascade_upperbody.xml',
+        'data/haarcascade_eye.xml',
+        'data/haarcascade_frontalface_alt.xml',
+        'data/haarcascade_mcs_upperbody.xml',
+        'data/haarcascade_upperbody.xml',
+        'data/haarcascade_frontalface_alt2.xml',
+        'data/haarcascade_profileface.xml',
+        'data/haarcascade_mcs_mouth.xml',
+        'data/haarcascade_smile.xml']
+
     for detector_path in detector_paths:
         cascade = cv2.CascadeClassifier(detector_path)
         cascades.append(cascade)
