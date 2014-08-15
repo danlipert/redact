@@ -8,9 +8,9 @@ def detectFaces(image, cascades):
     image -- input image to be detected
     """
     #setup parameters
-    detector_scale_factor = 1.1
+    detector_scale_factor = 1.2
     detector_minimum_neighbors = 1
-    detector_minimum_size_square = 40
+    detector_minimum_size_square = 20
     detector_maximum_size_square = 400
     #convert image to numpy array
     image = numpy.array(image)

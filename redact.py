@@ -6,6 +6,8 @@ from render import blur
 import sys
 from datetime import timedelta
 import json
+import argparse
+import numpy
 
 def show_usage():
 	print 'Please enter the path of the video to be redacted as the 1st argument'
@@ -60,15 +62,15 @@ def redactVideo(video, blurType, videoPath):
     cascades = []
     detector_paths = ['data/haarcascade_frontalface_alt_tree.xml',
         'data/haarcascade_frontalface_default.xml',
-        'data/haarcascade_upperbody.xml',
-        'data/haarcascade_eye.xml',
+        #'data/haarcascade_upperbody.xml',
+        #'data/haarcascade_eye.xml',
         'data/haarcascade_frontalface_alt.xml',
-        'data/haarcascade_mcs_upperbody.xml',
-        'data/haarcascade_upperbody.xml',
+        #'data/haarcascade_mcs_upperbody.xml',
+        #'data/haarcascade_upperbody.xml',
         'data/haarcascade_frontalface_alt2.xml',
-        'data/haarcascade_profileface.xml',
-        'data/haarcascade_mcs_mouth.xml',
-        'data/haarcascade_smile.xml']
+        'data/haarcascade_profileface.xml']
+        #'data/haarcascade_mcs_mouth.xml',
+        #'data/haarcascade_smile.xml']
 
     for detector_path in detector_paths:
         cascade = cv2.CascadeClassifier(detector_path)
@@ -138,24 +140,44 @@ def loadHyperframesFromJson(jsonPath):
     return hyperframes
 
 # main
-try:
-    videoPath = sys.argv[1]
-except Exception as e:
-    show_usage()
-    exit()
+parser = argparse.ArgumentParser()
+parser.add_argument("path", help="path to source video")
+parser.add_argument("blurtype", help="type of blur effect")
+parser.add_argument("export", help="path to export raw hyperframe data")
+parser.add_argument("rendertype", help="type of rendering")
 
-blurType = sys.argv[2]
+args = parser.parse_args()
+videoPath = args.path
+blurType = args.blurtype
+jsonPath = args.export
+renderType = args.rendertype
+
 if blurType != 'motion':
     show_usage()
     raise Exception('ERROR: Could not parse blur type "%s"' % arg)
     exit()
 
-try:
-    jsonPath = sys.argv[3]
-except Exception as e:
-    print e
+
+if renderType == 'adjusted':
     video = loadVideo(videoPath)
-    redactVideo(video, blurType, videoPath)
+    fourcc = cv2.cv.CV_FOURCC(*'mp4v')
+    cv_fourcc_code, FRAME_RATE, FRAME_HEIGHT, FRAME_WIDTH, VIDEO_LENGTH = extract_capture_metadata(video)
+    writer = cv2.VideoWriter('output-adjusted.mov', fourcc, FRAME_RATE, (int(FRAME_WIDTH), int(FRAME_HEIGHT)), True)
+    ret = True
+
+    while(ret):
+        frame_count = video.get(1)
+        timestamp = timedelta(seconds=(video.get(0) / 1000))
+        sys.stdout.write("Processed {0} of {1}\r".format(timestamp, VIDEO_LENGTH))
+        sys.stdout.flush()
+
+        ret, frame = video.read()
+        if ret:
+            adjustedFrame = image.adjustImage(frame)
+            writer.write(numpy.array(adjustedFrame))
+        else:
+            break
+
     exit()
 
 video = loadVideo(videoPath)
