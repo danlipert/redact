@@ -24,10 +24,10 @@ def detectFaces(image, cascades):
     image -- input image to be detected
     """
     #setup parameters
-    detector_scale_factor = 1.5
-    detector_minimum_neighbors = 1
+    detector_scale_factor = 1.05
+    detector_minimum_neighbors = 0
     detector_minimum_size_square = 20
-    detector_maximum_size_square = 400
+    detector_maximum_size_square = 200
     #convert image to numpy array
     image = numpy.array(image)
     all_boxes = []

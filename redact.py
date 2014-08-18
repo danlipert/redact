@@ -54,9 +54,10 @@ def redactVideo(video, blurType, videoPath):
     blurType -- the type of burring effect to use.
     """
     
+    outputPath = '%s-haar.mov' % videoPath.split('.')[0]
     fourcc = cv2.cv.CV_FOURCC(*'mp4v')
     cv_fourcc_code, FRAME_RATE, FRAME_HEIGHT, FRAME_WIDTH, VIDEO_LENGTH = extract_capture_metadata(video)
-    writer = cv2.VideoWriter('output.mov', fourcc, FRAME_RATE, (int(FRAME_WIDTH), int(FRAME_HEIGHT)), True)
+    writer = cv2.VideoWriter(outputPath, fourcc, FRAME_RATE, (int(FRAME_WIDTH), int(FRAME_HEIGHT)), True)
     
     hyperframes = []
     cascades = []
