@@ -64,10 +64,10 @@ def redactVideo(video, blurType, videoPath):
         'data/haarcascade_frontalface_default.xml',
         #'data/haarcascade_upperbody.xml',
         #'data/haarcascade_eye.xml',
-        'data/haarcascade_frontalface_alt.xml',
+        #'data/haarcascade_frontalface_alt.xml',
         #'data/haarcascade_mcs_upperbody.xml',
         #'data/haarcascade_upperbody.xml',
-        'data/haarcascade_frontalface_alt2.xml',
+        #'data/haarcascade_frontalface_alt2.xml',
         'data/haarcascade_profileface.xml']
         #'data/haarcascade_mcs_mouth.xml',
         #'data/haarcascade_smile.xml']
@@ -143,13 +143,13 @@ def loadHyperframesFromJson(jsonPath):
 parser = argparse.ArgumentParser()
 parser.add_argument("path", help="path to source video")
 parser.add_argument("blurtype", help="type of blur effect")
-parser.add_argument("export", help="path to export raw hyperframe data")
-parser.add_argument("rendertype", help="type of rendering")
+parser.add_argument("--import", dest="jsonpath", help="path to load raw hyperframe data")
+parser.add_argument("--rendertype", help="type of rendering")
 
 args = parser.parse_args()
 videoPath = args.path
 blurType = args.blurtype
-jsonPath = args.export
+jsonPath = args.jsonpath
 renderType = args.rendertype
 
 if blurType != 'motion':
@@ -162,7 +162,7 @@ if renderType == 'adjusted':
     video = loadVideo(videoPath)
     fourcc = cv2.cv.CV_FOURCC(*'mp4v')
     cv_fourcc_code, FRAME_RATE, FRAME_HEIGHT, FRAME_WIDTH, VIDEO_LENGTH = extract_capture_metadata(video)
-    writer = cv2.VideoWriter('output-adjusted.mov', fourcc, FRAME_RATE, (int(FRAME_WIDTH), int(FRAME_HEIGHT)), True)
+    writer = cv2.VideoWriter('output-adjusted3.mov', fourcc, FRAME_RATE, (int(FRAME_WIDTH), int(FRAME_HEIGHT)), True)
     ret = True
 
     while(ret):
@@ -177,13 +177,17 @@ if renderType == 'adjusted':
             writer.write(numpy.array(adjustedFrame))
         else:
             break
-
+    writer.release()
     exit()
 
-video = loadVideo(videoPath)
-hyperframes = loadHyperframesFromJson(jsonPath)
-redactVideoFromHyperframes(video, blurType, videoPath, hyperframes)
-exit()
+if jsonPath:
+    video = loadVideo(videoPath)
+    hyperframes = loadHyperframesFromJson(jsonPath)
+    redactVideoFromHyperframes(video, blurType, videoPath, hyperframes)
+    exit()
+else:
+    video = loadVideo(videoPath)
+    redactVideo(video, blurType, videoPath)
 
 
 
