@@ -60,7 +60,7 @@ def redactVideo(video, blurType, videoPath):
     
     hyperframes = []
     cascades = []
-    detector_paths = ['data/haarcascade_frontalface_alt_tree.xml']
+    detector_paths = ['data/haarcascade_frontalface_alt_tree.xml',
         #'data/haarcascade_frontalface_default.xml',
         #'data/haarcascade_upperbody.xml',
         #'data/haarcascade_eye.xml',
@@ -68,7 +68,7 @@ def redactVideo(video, blurType, videoPath):
         #'data/haarcascade_mcs_upperbody.xml',
         #'data/haarcascade_upperbody.xml',
         #'data/haarcascade_frontalface_alt2.xml',
-        #'data/haarcascade_profileface.xml']
+        'data/haarcascade_profileface.xml']
         #'data/haarcascade_mcs_mouth.xml',
         #'data/haarcascade_smile.xml']
 
@@ -94,7 +94,10 @@ def redactVideo(video, blurType, videoPath):
             if len(muxedFaces) > 0:
                 finalFaces = []
                 for face in muxedFaces:
-                    finalFaces.append(face.tolist())
+                    if type(face) is tuple:
+                        finalFaces.append(list(face))
+                    else:
+                        finalFaces.append(face.tolist())
                 muxedFaces = finalFaces
             hyperframe = {'frameNumber':frame_count, 'faces':muxedFaces}
             hyperframes.append(hyperframe)
@@ -102,7 +105,7 @@ def redactVideo(video, blurType, videoPath):
     hyperframes = morphology.erode(hyperframes)
     
     #store for re-use
-    pickleHyperframes(hyperframes, videoPath)
+    #pickleHyperframes(hyperframes, videoPath)
     
     events = event.generateEvents(hyperframes)
     blur.blurVideo(writer, events, video, blurType)

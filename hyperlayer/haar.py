@@ -1,5 +1,6 @@
 import cv2
 import numpy
+from math import sin, cos, radians
 
 def rotate_image(image, angle):
     if angle == 0: return image
@@ -36,7 +37,7 @@ def detectFaces(image, cascades):
             r_image = rotate_image(image, angle)
             boxes = cascade.detectMultiScale(r_image, scaleFactor=detector_scale_factor, minNeighbors=detector_minimum_neighbors, minSize=(detector_minimum_size_square, detector_minimum_size_square), maxSize=(detector_maximum_size_square, detector_maximum_size_square), flags=cv2.cv.CV_HAAR_SCALE_IMAGE)
             if len(boxes):
-                boxes = [rotate_point(detected[-1], image, -angle)]
+                boxes = [rotate_point(boxes[-1], image, -angle)]
                 all_boxes.append(boxes)
                 print '%s faces found in frame' % len(boxes)
                 break
