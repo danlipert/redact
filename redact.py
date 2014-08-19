@@ -64,6 +64,8 @@ def redactVideo(video, blurType, videoPath):
     
     hyperframes = []
     cascades = []
+    
+    '''
     detector_paths = ['data/haarcascade_frontalface_alt_tree.xml',
         #'data/haarcascade_frontalface_default.xml',
         #'data/haarcascade_upperbody.xml',
@@ -80,7 +82,11 @@ def redactVideo(video, blurType, videoPath):
     for eachPath in detector_paths:
         detector = classes.Detector(path=eachPath, minimum_neighbors=0)
         detectors.append(detector)
-        
+    '''
+    
+    detectors = [classes.Detector(path='data/haarcascade_frontalface_alt_tree.xml', minimum_neighbors=0),
+        classes.Detector(path='data/haarcascade_profileface.xml', minimum_neighbors=0)]
+    
     for detector in detectors:
         print 'loading %s' % detector.path
         cascade = cv2.CascadeClassifier(detector.path)
