@@ -1,6 +1,6 @@
 import cv2
 from util import image
-from hyperlayer import haar, morphology
+from hyperlayer import haar, morphology, classes
 from event import event
 from render import blur
 import sys
@@ -72,10 +72,16 @@ def redactVideo(video, blurType, videoPath):
         'data/haarcascade_profileface.xml']
         #'data/haarcascade_mcs_mouth.xml',
         #'data/haarcascade_smile.xml']
-
-    for detector_path in detector_paths:
-        cascade = cv2.CascadeClassifier(detector_path)
-        cascades.append(cascade)
+    
+    detectors = []
+    for eachPath in detector_paths:
+        detector = classes.Detector(path=eachPath, minimum_neighbors=0)
+        detectors.append(detector)
+        
+    for detector in detectors:
+        print 'loading %s' % detector.path
+        cascade = cv2.CascadeClassifier(detector.path)
+        detector.cascade = cascade
 
     ret = True
     print 'creating hyperframes...'
@@ -89,7 +95,7 @@ def redactVideo(video, blurType, videoPath):
 
         if ret==True:
             adjustedFrame = image.adjustImage(frame)
-            faces = haar.detectFaces(adjustedFrame, cascades)
+            faces = haar.detectFaces(adjustedFrame, detectors)
             muxedFaces = haar.muxBoxes(faces)
             #convert from np array to python list
             if len(muxedFaces) > 0:
@@ -97,16 +103,20 @@ def redactVideo(video, blurType, videoPath):
                 for face in muxedFaces:
                     if type(face) is tuple:
                         finalFaces.append(list(face))
+                    elif type(face) is list and len(face) is 1:
+                        finalFaces.append(face[0])
+                    elif type(face) is list:
+                        finalFaces.append(face)
                     else:
                         finalFaces.append(face.tolist())
                 muxedFaces = finalFaces
             hyperframe = {'frameNumber':frame_count, 'faces':muxedFaces}
             hyperframes.append(hyperframe)
     print 'hyperframe created'
-    hyperframes = morphology.erode(hyperframes)
+    #hyperframes = morphology.erode(hyperframes)
     
     #store for re-use
-    #pickleHyperframes(hyperframes, videoPath)
+    pickleHyperframes(hyperframes, videoPath)
     
     events = event.generateEvents(hyperframes)
     blur.blurVideo(writer, events, video, blurType)
