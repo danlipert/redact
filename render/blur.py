@@ -4,7 +4,7 @@ import numpy
 
 def blurVideo(writer, events, video, blurType='motion'):
     """
-    Returns image adjusted for facial detection.
+    Writes video where faces are blurred.
     
     video -- source video to blur
     events -- list of blurring events
@@ -16,10 +16,8 @@ def blurVideo(writer, events, video, blurType='motion'):
     #first restart video
     video.set(cv2.cv.CV_CAP_PROP_POS_AVI_RATIO, 0)
     for event in events:
-        print 'processing event...'
         #read source video frames
         ret, frame = video.read()
-        print 'new frame'
         #draw on each frame
         if event['type'] == 'spawn' or event['type'] == 'move':
             faces = event['faces']
@@ -30,8 +28,6 @@ def blurVideo(writer, events, video, blurType='motion'):
                 for eachFace in faces:
 
                     eachFaceRect = eachFace
-                    print eachFaceRect
-                    print frameImage
                     ic = frameImage.crop((eachFaceRect[0], eachFaceRect[1], eachFaceRect[0]+eachFaceRect[2], eachFaceRect[1]+eachFaceRect[3]))
                     for i in range(20):  # with the BLUR filter, you can blur a few times to get the effect you're seeking
                         ic = ic.filter(ImageFilter.BLUR)
@@ -39,7 +35,6 @@ def blurVideo(writer, events, video, blurType='motion'):
                     blurredImage = frameImage
                     #blurredImage = frameImage
                     blurredFrame = numpy.array(blurredImage)
-                    print 'face blurred... next face!'
                 #cv2.rectangle(frame, (eachFaceRect[0], eachFaceRect[1]), (eachFaceRect[0] + eachFaceRect[2], eachFaceRect[1]+eachFaceRect[3]), (255,100,100), thickness = 1, lineType=8, shift=0)
 
             #eachFaceRect = event['faces']
@@ -49,6 +44,38 @@ def blurVideo(writer, events, video, blurType='motion'):
         #write frame
         writer.write(blurredFrame)
     
+    writer.release()
+
+def boxVideo(writer, events, video):
+    """
+    Writes video where faces have boxes drawn around them.
+    
+    video -- source video to draw boxes around
+    events -- list of blurring events
+    """
+    #setupWindows()
+    print 'rendering video...'
+    #very basic implementation
+    
+    #first restart video
+    video.set(cv2.cv.CV_CAP_PROP_POS_AVI_RATIO, 0)
+    for event in events:
+        #read source video frames
+        ret, frame = video.read()
+        #draw on each frame
+        if event['type'] == 'spawn' or event['type'] == 'move':
+            faces = event['faces']
+            frameImage = Image.fromarray(numpy.uint8(frame))
+            blurredImage = None
+            blurredFrame = None
+            if len(faces) > 0:
+                for eachFace in faces:
+                    eachFaceRect = eachFace
+                    cv2.rectangle(frame, (eachFaceRect[0], eachFaceRect[1]), (eachFaceRect[0] + eachFaceRect[2], eachFaceRect[1]+eachFaceRect[3]), (255,100,100), thickness = 1, lineType=8, shift=0)
+
+        #write frame
+        writer.write(frame)
+
     writer.release()
 
 def setupWindows():

@@ -55,6 +55,9 @@ def redactVideo(video, blurType, videoPath):
     """
     
     outputPath = '%s-haar.mov' % videoPath.split('.')[0]
+    
+    print '%s applied to %s -> %s' % (blurType, videoPath, outputPath)
+    
     fourcc = cv2.cv.CV_FOURCC(*'mp4v')
     cv_fourcc_code, FRAME_RATE, FRAME_HEIGHT, FRAME_WIDTH, VIDEO_LENGTH = extract_capture_metadata(video)
     writer = cv2.VideoWriter(outputPath, fourcc, FRAME_RATE, (int(FRAME_WIDTH), int(FRAME_HEIGHT)), True)
@@ -84,7 +87,6 @@ def redactVideo(video, blurType, videoPath):
         detector.cascade = cascade
 
     ret = True
-    print 'creating hyperframes...'
     while(ret):
         frame_count = video.get(1)
         timestamp = timedelta(seconds=(video.get(0) / 1000))
@@ -112,14 +114,18 @@ def redactVideo(video, blurType, videoPath):
                 muxedFaces = finalFaces
             hyperframe = {'frameNumber':frame_count, 'faces':muxedFaces}
             hyperframes.append(hyperframe)
-    print 'hyperframe created'
+
     #hyperframes = morphology.erode(hyperframes)
     
     #store for re-use
     pickleHyperframes(hyperframes, videoPath)
     
     events = event.generateEvents(hyperframes)
-    blur.blurVideo(writer, events, video, blurType)
+
+    if blurType == 'boxes':
+        blur.boxVideo(writer, events, video)
+    else:
+        blur.blurVideo(writer, events, video)
 
 def redactVideoFromHyperframes(video, blurType, videoPath, hyperframes):
     """
@@ -166,7 +172,7 @@ blurType = args.blurtype
 jsonPath = args.jsonpath
 renderType = args.rendertype
 
-if blurType != 'motion':
+if blurType != 'motion' and blurType != 'boxes':
     show_usage()
     raise Exception('ERROR: Could not parse blur type "%s"' % arg)
     exit()
