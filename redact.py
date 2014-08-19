@@ -64,26 +64,7 @@ def redactVideo(video, blurType, videoPath):
     
     hyperframes = []
     cascades = []
-    
-    '''
-    detector_paths = ['data/haarcascade_frontalface_alt_tree.xml',
-        #'data/haarcascade_frontalface_default.xml',
-        #'data/haarcascade_upperbody.xml',
-        #'data/haarcascade_eye.xml',
-        #'data/haarcascade_frontalface_alt.xml',
-        #'data/haarcascade_mcs_upperbody.xml',
-        #'data/haarcascade_upperbody.xml',
-        #'data/haarcascade_frontalface_alt2.xml',
-        'data/haarcascade_profileface.xml']
-        #'data/haarcascade_mcs_mouth.xml',
-        #'data/haarcascade_smile.xml']
-    
-    detectors = []
-    for eachPath in detector_paths:
-        detector = classes.Detector(path=eachPath, minimum_neighbors=0)
-        detectors.append(detector)
-    '''
-    
+
     detectors = [classes.Detector(path='data/haarcascade_frontalface_alt_tree.xml', minimum_neighbors=0),
         classes.Detector(path='data/haarcascade_profileface.xml', minimum_neighbors=0)]
     
