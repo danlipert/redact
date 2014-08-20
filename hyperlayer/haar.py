@@ -17,6 +17,12 @@ def rotate_point(pos, img, angle):
     newy = -x*sin(radians(angle)) + y*cos(radians(angle)) + img.shape[0]*0.4
     return int(newx), int(newy), pos[2], pos[3]
 
+def ints_only(box):
+    return [int(box[0]), int(box[1]), int(box[2]), int(box[3])]
+
+def correct_cropping_region(box, region):
+    return [box[0]+region['x'], box[1]+region['y'], box[2], box[3]]
+
 def detectFaces(image, detectors):
     """
     Returns list of bounding boxes (x, y, w, h) containing human faces.
@@ -29,6 +35,10 @@ def detectFaces(image, detectors):
     all_boxes = []
     #check different angles
     for detector in detectors:
+        #crop image for region
+        region = detector.region
+        crop_img = image[region['y']:region['y']+region['h'], region['x']:region['x']+region['w']] # Crop from x, y, w, h -> 100, 200, 300, 400
+        # NOTE: its img[y: y + h, x: x + w] and *not* img[x: x + w, y: y + h]
         #setup parameters
         detector_scale_factor = detector.scale_factor
         detector_minimum_neighbors = detector.minimum_neighbors
@@ -36,15 +46,19 @@ def detectFaces(image, detectors):
         detector_maximum_size_square = detector.maximum_size_square
         cascade = detector.cascade
         for angle in [0, -25, 25]:
-            r_image = rotate_image(image, angle)
+            r_image = rotate_image(crop_img, angle)
             boxes = cascade.detectMultiScale(r_image, scaleFactor=detector_scale_factor, minNeighbors=detector_minimum_neighbors, minSize=(detector_minimum_size_square, detector_minimum_size_square), maxSize=(detector_maximum_size_square, detector_maximum_size_square), flags=cv2.cv.CV_HAAR_SCALE_IMAGE)
             #convert to regular array
             boxes = list(boxes)
             if len(boxes):
-                boxes = rotate_point(boxes[-1], image, -angle)
-                all_boxes.append(boxes)
-                print '%s faces found in frame' % len(boxes)
-                break
+                for box in boxes:
+                    print box
+                    box = rotate_point(box, image, -angle)
+                    print box
+                    box = correct_cropping_region(box, region)
+                    box = ints_only(box)
+                    all_boxes.append(box)
+                    print '%s faces found in frame' % len(all_boxes)
     return all_boxes
 
 def muxBoxes(boxes, minSize=(0,0)):
