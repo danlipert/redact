@@ -68,12 +68,14 @@ def redactVideo(video, blurType, videoPath):
     #detectors = [classes.Detector(path='data/haarcascade_frontalface_alt_tree.xml', minimum_neighbors=0),
     #    classes.Detector(path='data/haarcascade_profileface.xml', minimum_neighbors=0)]
     
-    detectors = [classes.Detector(path='data/haarcascade_frontalface_alt_tree.xml', minimum_neighbors=0, 
+    detectors = [classes.Detector(path='data/haarcascade_frontalface_alt_tree.xml', minimum_neighbors=1, 
         region={'x':100, 'y':100, 'w':FRAME_WIDTH-100, 'h':FRAME_HEIGHT-100}),
-        classes.Detector(path='data/haarcascade_mcs_mouth.xml', minimum_neighbors=0,
+        classes.Detector(path='data/haarcascade_mcs_mouth.xml', minimum_neighbors=1,
         region={'x':0, 'y':0, 'w':FRAME_WIDTH, 'h':100}),
-        classes.Detector(path='data/haarcascade_eye.xml', minimum_neighbors=0,
-        region={'x':0, 'y':FRAME_HEIGHT-100, 'w':FRAME_WIDTH, 'h':100})]
+        classes.Detector(path='data/haarcascade_eye.xml', minimum_neighbors=1,
+        region={'x':0, 'y':FRAME_HEIGHT-100, 'w':FRAME_WIDTH, 'h':100}),
+        classes.Detector(path='data/haarcascade_profileface.xml', minimum_neighbors=1,
+        region={'x':0, 'y':0, 'w':FRAME_WIDTH, 'h':FRAME_HEIGHT})]
     
     for detector in detectors:
         print 'loading %s' % detector.path
@@ -129,12 +131,17 @@ def redactVideoFromHyperframes(video, blurType, videoPath, hyperframes):
     blurType -- the type of burring effect to use.
     """
     
+    outputPath = '%s-haar.mov' % videoPath.split('.')[0]
+    
     fourcc = cv2.cv.CV_FOURCC(*'mp4v')
     cv_fourcc_code, FRAME_RATE, FRAME_HEIGHT, FRAME_WIDTH, VIDEO_LENGTH = extract_capture_metadata(video)
-    writer = cv2.VideoWriter('output.mov', fourcc, FRAME_RATE, (int(FRAME_WIDTH), int(FRAME_HEIGHT)), True)
+    writer = cv2.VideoWriter(outputPath, fourcc, FRAME_RATE, (int(FRAME_WIDTH), int(FRAME_HEIGHT)), True)
     
     events = event.generateEvents(hyperframes)
-    blur.blurVideo(writer, events, video, blurType)
+    if blurType == 'boxes':
+        blur.boxVideo(writer, events, video)
+    else:
+        blur.blurVideo(writer, events, video)
 
 
 def loadVideo(videoPath):
