@@ -1,4 +1,5 @@
 import numpy
+from util.image import isHumanColor
 
 def generateEvents(hyperframes):
     """
@@ -14,6 +15,10 @@ def generateEvents(hyperframes):
     events = []
     hyperframes = movingAverage(hyperframes)
     
+    #place blank events first
+    #for eachHyperframe in hyperframes:
+    #    events.append({'faces':[], 'type':'move'})
+    
     for i, eachHyperframe in enumerate(hyperframes):
         frameSlice = hyperframes[i-BACK_BUFFER_LENGTH:i+FORWARD_BUFFER_LENGTH]
         goodFaces = []
@@ -26,13 +31,19 @@ def generateEvents(hyperframes):
                         if dist < DISTANCE_THRESHOLD:
                             #found nearby box in time
                             goodFaces.append(eachFace)
-        event = {'faces':goodFaces, 'type':'move'}
-
-        print event
-        events.append(event)
-        
+                            #spreadFacesOnEvents(1, i, eachFace, events)
+        events.append({'faces':goodFaces, 'type':'move'})
     print 'events generated'
     return events
+
+def spreadFacesOnEvents(spread, index, face, events):
+    print 'spreading event for frame %i' % index
+    for i in range(index-spread,index+spread):
+        try:
+            events[i]['faces'].append(face)
+        except:
+            pass
+
 
 def ratioOfHyperframeSlice(frameSlice):
     

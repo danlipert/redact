@@ -1,3 +1,41 @@
+import math
+import numpy
+from event.event import centerOfBox
+import cv2
+import random
+from PIL import Image
+from util.image import isHumanColor
+
+def closestBoxToPoint(point, candidates):
+    """
+    Returns the closest bounding box out of the candidates to the provided box
+    
+    point -- point to find the closest to
+    candidates -- array of boxes to compare to
+    """
+    
+    #first guess that its the first one (why not?)
+    if len(candidates) == 1:
+        return candidates[0]
+    elif len(candidates) == 0:
+        return None
+    
+    boxCenter = point
+    closest = candidates[0]
+    #some large distance to start
+    kingDistance = 99999999999
+    for i, eachCandidate in enumerate(candidates):
+        if i == 0:
+            #already handled
+            continue
+        candidateCenter = centerOfBox(eachCandidate)
+        dist = numpy.linalg.norm(point-candidateCenter)
+        if dist < kingDistance:
+            kingDistance = dist
+            closest = eachCandidate
+    
+    return closest
+
 class Detector:
 	"""
 	A haar cascade classifier with associated settings
@@ -19,3 +57,86 @@ class Detector:
 		self.scale_factor = scale_factor
 		self.minimum_neighbors = minimum_neighbors
 		self.cascade = cascade
+
+class Mob:
+    """
+    A video game-AI style object that controls rendering
+
+    x, y -- center of mob
+    target -- current location that the mob is approaching
+    velocity -- maximum distance that can be moved
+    """
+
+    def __init__(self, x=0, y=0, target=[0,0], velocity=3):
+        self.x = x
+        self.y = y
+        self.target = target
+        self.velocity = velocity
+
+    def __eq__(self, other):
+        if self.x == other.x and self.y == other.y and self.target == other.target and self.velocity == other.velocity:
+            return True
+        else:
+            return False
+
+    def move(self):
+        y0 = self.target[1] - self.y
+        x0 = self.target[0] - self.x
+        angleToTarget = math.atan2(y0, x0)
+        yv = self.velocity * math.sin(angleToTarget)
+        xv = self.velocity * math.cos(angleToTarget)
+        print 'moving mob at %s angle (%s, %s) -> (%s, %s)' % (math.degrees(angleToTarget), self.x, self.y, self.x+xv, self.y+yv)
+        self.x = self.x + xv
+        self.y = self.y + yv
+
+
+
+class MobManager:
+    """
+    A manager object to control a set of mobs intelligently
+    
+    mobs -- array of mob objects
+    """
+    
+    def __init__(self, mobs=[]):
+		self.mobs = mobs
+
+    def tick(self, event):
+        faces = event['faces']
+        #check to see if we need to add a mob
+        if len(event['faces']) > len(self.mobs):
+            newFace = event['faces'][-1]
+            #generate 1 mob per frame
+            self.mobs.append(Mob(x=newFace[0], y=newFace[1], target=(newFace[0], newFace[1])))
+        
+        mobsToRemove = []
+        
+        for mob in self.mobs:
+            #match each mob to target face
+            mob.target = closestBoxToPoint([mob.x, mob.y], faces)
+            if mob.target == None:
+                mobsToRemove.append(mob)
+            else:
+                faces.remove(mob.target)
+                mob.move()
+        
+        for mob in mobsToRemove:
+            #randomly remove mobs...
+            if random.randint(0, 10) == 5:
+                self.mobs.remove(mob)
+
+    def render(self, frame):
+        mobSize = 50
+        for mob in self.mobs:
+            eachFaceRect = [int(mob.x-mobSize/2), int(mob.y-mobSize/2), int(mob.x+mobSize/2), int(mob.y+mobSize/2)]
+            frameImage = Image.fromarray(numpy.uint8(frame))
+            croppedImage = frameImage.crop((eachFaceRect[0], eachFaceRect[1], eachFaceRect[0]+eachFaceRect[2], eachFaceRect[1]+eachFaceRect[3]))
+            if isHumanColor(croppedImage):
+                cv2.rectangle(frame, (eachFaceRect[0], eachFaceRect[1]), (eachFaceRect[0] + eachFaceRect[2], eachFaceRect[1]+eachFaceRect[3]), (255,100,100), thickness = 1, lineType=8, shift=0)
+
+
+        #write frame
+        return frame
+
+
+
