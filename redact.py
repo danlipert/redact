@@ -292,9 +292,18 @@ def haarImage(path):
     while(1):
         cv2.waitKey(25)
 
+def testEventSpread(path):
+    from event.event import spreadAllFacesOnEvents
+    hyperframes = loadHyperframesFromJson(path)
+    events = event.generateSimpleEvents(hyperframes)
+    spreadAllFacesOnEvents(30, events)
+    print 'DONE SPREADING'
+    print events
+
+
 @click.command()
 @click.argument('path')
-@click.argument('blurtype')
+@click.argument('blurtype', default='motion')
 @click.option('--jsonpath', help='Json Hyperframe data for import.')
 @click.option('--rendertype', default='boxes', help='Render style.')
 def redact(path, blurtype, jsonpath, rendertype):
@@ -306,6 +315,8 @@ def redact(path, blurtype, jsonpath, rendertype):
         chopFrames(path)
     elif rendertype == 'haarimage':
         haarImage(path)
+    elif rendertype == 'testeventspread':
+        testEventSpread(path)
     elif jsonpath:
         video = loadVideo(path)
         hyperframes = loadHyperframesFromJson(jsonpath)
