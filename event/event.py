@@ -58,20 +58,20 @@ def spreadFaceOnEvents(spread, index, face, events):
         if i >= len(events):
             continue
         if face in events[i]['faces']:
-            print 'face %s already exists in event %i: %s' % (face, i, events[i]['faces'])
+            #print 'face %s already exists in event %i: %s' % (face, i, events[i]['faces'])
         else:
-            print 'face %s is not in event %i\'s faces %s' % (face, i, events[i]['faces'])
+            #print 'face %s is not in event %i\'s faces %s' % (face, i, events[i]['faces'])
             spreadEvents[i]['faces'].append(face)
     combineEventsFaces(spreadEvents, events)
 
 def combineEventsFaces(events, otherEvents):
-    print 'combining %s and %s' % (events, otherEvents)
+    #print 'combining %s and %s' % (events, otherEvents)
 
     for i, eachEvent in enumerate(events):
         for eachFace in eachEvent['faces']:
             if eachFace not in otherEvents[i]['faces']:
                 otherEvents[i]['faces'].append(eachFace)
-    print 'combined: %s' % otherEvents
+    #print 'combined: %s' % otherEvents
 
 
 def ratioOfHyperframeSlice(frameSlice):
