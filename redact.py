@@ -136,7 +136,7 @@ def redactVideo(video, blurType, videoPath):
     pickleHyperframes(hyperframes, videoPath)
     
     events = event.generateSimpleEvents(hyperframes)
-    event.spreadAllFacesOnEvents(0, events)
+    event.spreadAllFacesOnEvents(10, events)
 
     if blurType == 'boxes':
         blur.boxVideo(writer, events, video)
@@ -165,10 +165,10 @@ def redactVideoFromHyperframes(video, blurType, videoPath, hyperframes):
 
 
     
-    #if blurType == 'boxes':
-    #    blur.boxVideo(writer, events, video)
-    #else:
-    #    blur.blurVideo(writer, events, video)
+    if blurType == 'boxes':
+        blur.boxVideo(writer, events, video)
+    else:
+        blur.blurVideo(writer, events, video)
 
 
 def loadVideo(videoPath):
