@@ -74,9 +74,9 @@ def boxVideo(writer, events, video):
             if len(faces) > 0:
                 for eachFace in faces:
                     eachFaceRect = eachFace
-                    croppedImage = frameImage.crop((eachFaceRect[0], eachFaceRect[1], eachFaceRect[0]+eachFaceRect[2], eachFaceRect[1]+eachFaceRect[3]))
-                    if isHumanColor(croppedImage):
-                        cv2.rectangle(frame, (eachFaceRect[0], eachFaceRect[1]), (eachFaceRect[0] + eachFaceRect[2], eachFaceRect[1]+eachFaceRect[3]), (255,100,100), thickness = 1, lineType=8, shift=0)
+                    #croppedImage = frameImage.crop((eachFaceRect[0], eachFaceRect[1], eachFaceRect[0]+eachFaceRect[2], eachFaceRect[1]+eachFaceRect[3]))
+                    #if isHumanColor(croppedImage):
+                    cv2.rectangle(frame, (eachFaceRect[0], eachFaceRect[1]), (eachFaceRect[0] + eachFaceRect[2], eachFaceRect[1]+eachFaceRect[3]), (255,100,100), thickness = 1, lineType=8, shift=0)
 
         #write frame
         writer.write(frame)

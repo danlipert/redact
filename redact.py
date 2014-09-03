@@ -136,7 +136,7 @@ def redactVideo(video, blurType, videoPath):
     pickleHyperframes(hyperframes, videoPath)
     
     events = event.generateSimpleEvents(hyperframes)
-    event.spreadAllFacesOnEvents(10, events)
+    event.spreadAllFacesOnEvents(0, events)
 
     if blurType == 'boxes':
         blur.boxVideo(writer, events, video)
@@ -160,7 +160,7 @@ def redactVideoFromHyperframes(video, blurType, videoPath, hyperframes):
     writer = cv2.VideoWriter(outputPath, fourcc, FRAME_RATE, (int(FRAME_WIDTH), int(FRAME_HEIGHT)), True)
     
     events = event.generateSimpleEvents(hyperframes)
-    event.spreadAllFacesOnEvents(10, events)
+    event.spreadAllFacesOnEvents(5, events)
     
     if blurType == 'boxes':
         blur.boxVideo(writer, events, video)
