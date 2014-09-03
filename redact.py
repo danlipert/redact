@@ -160,12 +160,15 @@ def redactVideoFromHyperframes(video, blurType, videoPath, hyperframes):
     writer = cv2.VideoWriter(outputPath, fourcc, FRAME_RATE, (int(FRAME_WIDTH), int(FRAME_HEIGHT)), True)
     
     events = event.generateSimpleEvents(hyperframes)
+
     event.spreadAllFacesOnEvents(5, events)
+
+
     
-    if blurType == 'boxes':
-        blur.boxVideo(writer, events, video)
-    else:
-        blur.blurVideo(writer, events, video)
+    #if blurType == 'boxes':
+    #    blur.boxVideo(writer, events, video)
+    #else:
+    #    blur.blurVideo(writer, events, video)
 
 
 def loadVideo(videoPath):
@@ -299,7 +302,7 @@ def testEventSpread(path):
     from event.event import spreadAllFacesOnEvents
     hyperframes = loadHyperframesFromJson(path)
     events = event.generateSimpleEvents(hyperframes)
-    spreadAllFacesOnEvents(30, events)
+    spreadAllFacesOnEvents(1, events)
     print 'DONE SPREADING'
     print events
 
