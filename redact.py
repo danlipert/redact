@@ -112,7 +112,7 @@ def redactVideo(video, blurType, videoPath):
 
         if ret==True:
             adjustedFrame = image.adjustImage(frame)
-            faces = haar.detectFaces(adjustedFrame, detectors)
+            faces = haar.detectFaces(adjustedFrame, frame, detectors)
             muxedFaces = haar.muxBoxes(faces)
             #convert from np array to python list
             if len(muxedFaces) > 0:
@@ -233,7 +233,7 @@ def testSimpleHaar(path):
 
         if ret==True:
             adjustedFrame = image.adjustImage(frame)
-            faces = haar.detectFaces(adjustedFrame, detectors)
+            faces = haar.detectFaces(adjustedFrame, frame, detectors)
             muxedFaces = haar.muxBoxes(faces)
             #convert from np array to python list
             if len(muxedFaces) > 0:
@@ -287,7 +287,7 @@ def haarImage(path):
         print 'loading %s' % detector.path
         cascade = cv2.CascadeClassifier(detector.path)
         detector.cascade = cascade
-    faces = haar.detectFaces(frame, detectors)
+    faces = haar.detectFaces(frame, frame, detectors)
     for face in faces:
         eachFaceRect = face
         image = Image.fromarray(numpy.uint8(frame))
