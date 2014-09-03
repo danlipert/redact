@@ -159,9 +159,11 @@ def redactVideoFromHyperframes(video, blurType, videoPath, hyperframes):
     cv_fourcc_code, FRAME_RATE, FRAME_HEIGHT, FRAME_WIDTH, VIDEO_LENGTH = extract_capture_metadata(video)
     writer = cv2.VideoWriter(outputPath, fourcc, FRAME_RATE, (int(FRAME_WIDTH), int(FRAME_HEIGHT)), True)
     
-    events = event.generateEvents(hyperframes)
+    events = event.generateSimpleEvents(hyperframes)
+    event.spreadAllFacesOnEvents(10, events)
+    
     if blurType == 'boxes':
-        blur.boxVideoMob(writer, events, video)
+        blur.boxVideo(writer, events, video)
     else:
         blur.blurVideo(writer, events, video)
 
