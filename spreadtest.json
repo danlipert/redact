@@ -1,0 +1,26 @@
+[
+    {
+        "frameNumber": 0.0,
+        "faces":[]
+    },
+    {
+        "frameNumber": 1.0,
+        "faces":[]
+    },
+    {
+        "frameNumber": 2.0,
+        "faces":[[364, 169, 197, 197],[1, 1, 100, 100]]
+    },
+    {
+        "frameNumber": 3.0,
+        "faces":[]
+    },
+    {
+        "frameNumber": 4.0,
+        "faces":[]
+    },
+    {
+        "frameNumber": 5.0,
+        "faces":[]
+    }
+]
