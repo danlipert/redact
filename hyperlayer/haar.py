@@ -103,28 +103,33 @@ def combinedBox(boxA, boxB):
     by1 = boxB[1]
     by2 = boxB[1]+boxB[3]
     
-
-        
+    #origin (top left) x is the least of the origin xs of the two boxes
     
-    if ax1 > bx1:
-        cx1 = bx1
-    else:
+    if ax1 < bx1:
         cx1 = ax1
+    else:
+        cx1 = bx1
+    
+    #origin y is the least of the origin ys of the two boxes
     
     if ay1 < by1:
         cy1 = ay1
     else:
         cy1 = by1
     
+    #opposite x is the greatest of the opposite xs of the two boxes
+    
     if ax2 > bx2:
         cx2 = ax2
     else:
         cx2 = bx2
     
+    #opposite y is the greatest of the opposite ys of the two boxes
+    
     if ay2 > by2:
-        cy2 = by2
-    else:
         cy2 = ay2
+    else:
+        cy2 = by2
     
     return [cx1, cy1, cx2 - cx1, cy2 - cy1]
 
