@@ -11,7 +11,7 @@ def adjustImage(image):
     """
     image = Image.fromarray(image)
     #brighten
-    #image = image.point(lambda p: p * 1.2)
+    image = image.point(lambda p: p * 1.2)
     image = ImageOps.grayscale(image)
     image = ImageOps.equalize(image)
     #image = ImageOps.autocontrast(image)
@@ -25,9 +25,9 @@ def isHumanColor(image):
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     #create H ranges
     h_low = 320
-    h_high = 360
-    h_low2 = 0
-    h_high2 = 45
+    h_high = 355
+    h_low2 = 400
+    h_high2 = 400
     #calculate average
     h_values = []
     #sample the middle of the image

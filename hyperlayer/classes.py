@@ -3,7 +3,7 @@ import numpy
 from event.event import centerOfBox
 import cv2
 import random
-from PIL import Image
+from PIL import Image, ImageFilter
 from util.image import isHumanColor
 
 def closestBoxToPoint(point, candidates):
@@ -124,6 +124,31 @@ class MobManager:
             #randomly remove mobs...
             if random.randint(0, 10) == 5:
                 self.mobs.remove(mob)
+
+    def renderBlur(self, frame):
+        mobSize = 50
+        blurredFrame = frame
+        frameImage = Image.fromarray(numpy.uint8(frame))
+        for mob in self.mobs:
+            eachFaceRect = [int(mob.x-mobSize/2), int(mob.y-mobSize/2), int(mob.x+mobSize/2), int(mob.y+mobSize/2)]
+            
+            blurX = eachFaceRect[0] - int(eachFaceRect[2])
+            blurY = eachFaceRect[1] - int(eachFaceRect[3])
+            
+            blurXC = eachFaceRect[0] + int(eachFaceRect[2])
+            blurYC = eachFaceRect[1] + int(eachFaceRect[3])
+            ic = frameImage.crop((blurX, blurY, blurXC, blurYC))
+            if isHumanColor(ic):
+                for i in range(5):  # with the BLUR filter, you can blur a few times to get the effect you're seeking
+                    ic = ic.filter(ImageFilter.BLUR)
+                frameImage.paste(ic, (blurX, blurY))
+            blurredImage = frameImage
+
+            blurredFrame = numpy.array(blurredImage)
+                
+
+        #write frame
+        return blurredFrame
 
     def render(self, frame):
         mobSize = 50

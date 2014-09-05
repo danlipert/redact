@@ -98,6 +98,18 @@ def boxVideoMob(writer, events, video):
         capone.tick(event)
         renderedFrame = capone.render(frame)
         writer.write(frame)
+        
+def blurVideoMob(writer, events, video):
+    print 'blurring video with mobs...'
+    video.set(cv2.cv.CV_CAP_PROP_POS_AVI_RATIO, 0)
+    #create mob manager
+    capone = MobManager()
+    for event in events:
+        print 'rendering mobs...'
+        ret, frame = video.read()
+        capone.tick(event)
+        renderedFrame = capone.renderBlur(frame)
+        writer.write(renderedFrame)
 
 def setupWindows():
     cv2.namedWindow('Source', flags=cv2.WINDOW_NORMAL)

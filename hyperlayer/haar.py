@@ -116,7 +116,7 @@ def detectFaces(image, colorImage, detectors):
         detector_minimum_size_square = detector.minimum_size_square
         detector_maximum_size_square = detector.maximum_size_square
         cascade = detector.cascade
-        for angle in [0, 12, -12, -25, 25]:
+        for angle in [0]:
             r_image = rotate_image(crop_img, angle)
             boxes = cascade.detectMultiScale(r_image, scaleFactor=detector_scale_factor, minNeighbors=detector_minimum_neighbors, minSize=(detector_minimum_size_square, detector_minimum_size_square), maxSize=(detector_maximum_size_square, detector_maximum_size_square), flags=cv2.cv.CV_HAAR_SCALE_IMAGE)
             #convert to regular array

@@ -38,7 +38,7 @@ def pickleHyperframes(hyperframes, sourceFilename):
     outputFilename = '%s-hf.json' % sourceFilename
     print hyperframes
     with open(outputFilename, 'w') as outfile:
-        json.dump(hyperframes, outfile)
+        json.dump(hyperframes, outfile, indent=4)
     print 'Wrote Hyperframe JSON'
 
 def loadDetectors(FRAME_HEIGHT, FRAME_WIDTH):
@@ -51,26 +51,29 @@ def loadDetectors(FRAME_HEIGHT, FRAME_WIDTH):
     border_width = int(FRAME_WIDTH * 0.15)
     detectors = [
         #face detection on full frame
-        classes.Detector(path='data/haarcascade_frontalface_alt.xml', scale_factor=1.05, minimum_neighbors=0, 
+        classes.Detector(path='data/haarcascade_frontalface_alt.xml', scale_factor=1.1, minimum_neighbors=0, 
+        region={'x':0, 'y':0, 'w':FRAME_WIDTH, 'h':FRAME_HEIGHT}),
+        classes.Detector(path='data/haarcascade_frontalface_alt_tree.xml', scale_factor=1.1, minimum_neighbors=0, 
         region={'x':0, 'y':0, 'w':FRAME_WIDTH, 'h':FRAME_HEIGHT}),
         #upper body on full frame
-        classes.Detector(path='data/haarcascade_upperbody.xml', scale_factor=1.05, minimum_neighbors=2, 
+        classes.Detector(path='data/haarcascade_upperbody.xml', scale_factor=1.2, minimum_neighbors=2, 
         region={'x':0, 'y':0, 'w':FRAME_WIDTH, 'h':FRAME_HEIGHT}),
         #mouth detection for top of frame
         #profile face detection on full frame
-        classes.Detector(path='data/haarcascade_profileface.xml', scale_factor=1.1, minimum_neighbors=2,
-        region={'x':0, 'y':0, 'w':FRAME_WIDTH, 'h':FRAME_HEIGHT}),
-        classes.Detector(path='data/haarcascade_mcs_mouth.xml', scale_factor=1.2, minimum_neighbors=3,
-        region={'x':0, 'y':0, 'w':FRAME_WIDTH, 'h':border_height}),
-        #eye detection for bottom of frame
-        classes.Detector(path='data/haarcascade_eye.xml', scale_factor=1.2, minimum_neighbors=3,
-        region={'x':0, 'y':FRAME_HEIGHT-border_height, 'w':FRAME_WIDTH, 'h':border_height}),
-        #eye detection for left and right side of frame
-        classes.Detector(path='data/haarcascade_eye.xml', scale_factor=1.2, minimum_neighbors=3,
-        region={'x':0, 'y':0, 'w':border_width, 'h':FRAME_HEIGHT}),
-        classes.Detector(path='data/haarcascade_eye.xml', scale_factor=1.2, minimum_neighbors=3,
-        region={'x':FRAME_WIDTH-border_width, 'y':0, 'w':border_width, 'h':FRAME_HEIGHT})]
-    
+        classes.Detector(path='data/haarcascade_profileface.xml', scale_factor=1.1, minimum_neighbors=1,
+        region={'x':0, 'y':0, 'w':FRAME_WIDTH, 'h':FRAME_HEIGHT})]
+    '''
+    classes.Detector(path='data/haarcascade_mcs_mouth.xml', scale_factor=1.2, minimum_neighbors=3,
+    region={'x':0, 'y':0, 'w':FRAME_WIDTH, 'h':border_height}),
+    #eye detection for bottom of frame
+    classes.Detector(path='data/haarcascade_eye.xml', scale_factor=1.2, minimum_neighbors=3,
+    region={'x':0, 'y':FRAME_HEIGHT-border_height, 'w':FRAME_WIDTH, 'h':border_height}),
+    #eye detection for left and right side of frame
+    classes.Detector(path='data/haarcascade_eye.xml', scale_factor=1.2, minimum_neighbors=3,
+    region={'x':0, 'y':0, 'w':border_width, 'h':FRAME_HEIGHT}),
+    classes.Detector(path='data/haarcascade_eye.xml', scale_factor=1.2, minimum_neighbors=3,
+    region={'x':FRAME_WIDTH-border_width, 'y':0, 'w':border_width, 'h':FRAME_HEIGHT})]
+    '''
     
     return detectors
 
@@ -143,10 +146,16 @@ def redactVideo(video, blurType, videoPath, output):
     pickleHyperframes(hyperframes, videoPath)
     
     events = event.generateSimpleEvents(hyperframes)
-    event.spreadAllFacesOnEvents(10, events)
+    event.spreadAllFacesOnEvents(15, events)
 
     if blurType == 'boxes':
         blur.boxVideo(writer, events, video)
+    elif blurType == 'boxmob':
+        print 'boxing video with mobs'
+        blur.boxVideoMob(writer, events, video)
+    elif blurType == 'blurmob':
+        print 'blurring video with mobs'
+        blur.blurVideoMob(writer, events, video)
     else:
         blur.blurVideo(writer, events, video)
 
@@ -164,7 +173,7 @@ def redactVideoFromHyperframes(video, blurType, videoPath, hyperframes, output):
     if output == None:
         outputPath = '%s-haar.mov' % videoPath.split('.')[0]
     else:
-        outPutPath = output
+        outputPath = output
     
     print 'rendering to %s' % outputPath
     
@@ -184,6 +193,9 @@ def redactVideoFromHyperframes(video, blurType, videoPath, hyperframes, output):
     elif blurType == 'boxmob':
         print 'boxing video with mobs'
         blur.boxVideoMob(writer, events, video)
+    elif blurType == 'blurmob':
+        print 'blurring video with mobs'
+        blur.blurVideoMob(writer, events, video)
     else:
         print 'blurring video'
         blur.blurVideo(writer, events, video)
@@ -307,7 +319,7 @@ def haarImage(path):
         print 'loading %s' % detector.path
         cascade = cv2.CascadeClassifier(detector.path)
         detector.cascade = cascade
-    faces = haar.detectFaces(frame, frame, detectors)
+    faces = haar.detectFacesAnyColor(frame, frame, detectors)
     for face in faces:
         eachFaceRect = face
         image = Image.fromarray(numpy.uint8(frame))
@@ -390,7 +402,7 @@ def redact(path, blurtype, jsonpath, rendertype, output):
         print 'redacting video'
         redactVideoFromHyperframes(video, blurtype, path, hyperframes, output)
         print 'done!'
-    elif blurtype != 'motion' and blurtype != 'boxes':
+    elif blurtype != 'motion' and blurtype != 'boxes' and blurtype != 'boxmob' and blurtype != 'blurmob':
         show_usage()
         raise Exception('ERROR: Could not parse blur type "%s"' % arg)
     else:
