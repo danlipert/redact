@@ -15,6 +15,8 @@ def blurVideo(writer, events, video, blurType='motion'):
     print 'rendering video...'
     #very basic implementation
     
+    blurDilation = 1.1
+    
     #first restart video
     video.set(cv2.cv.CV_CAP_PROP_POS_AVI_RATIO, 0)
     for eventNumber, event in enumerate(events):
@@ -32,11 +34,15 @@ def blurVideo(writer, events, video, blurType='motion'):
                 for eachFace in faces:
 
                     eachFaceRect = eachFace
-                    ic = frameImage.crop((eachFaceRect[0], eachFaceRect[1], eachFaceRect[0]+eachFaceRect[2], eachFaceRect[1]+eachFaceRect[3]))
-
+                    blurX = eachFaceRect[0] - int(eachFaceRect[2] * (blurDilation - 1))
+                    blurY = eachFaceRect[1] - int(eachFaceRect[3] * (blurDilation - 1))
+                    
+                    blurXC = eachFaceRect[0] + int(eachFaceRect[2] * blurDilation)
+                    blurYC = eachFaceRect[1] + int(eachFaceRect[3] * blurDilation)
+                    ic = frameImage.crop((blurX, blurY, blurXC, blurYC))
                     for i in range(5):  # with the BLUR filter, you can blur a few times to get the effect you're seeking
                         ic = ic.filter(ImageFilter.BLUR)
-                    frameImage.paste(ic, (eachFaceRect[0], eachFaceRect[1]))
+                    frameImage.paste(ic, (blurX, blurY))
                     blurredImage = frameImage
 
                     blurredFrame = numpy.array(blurredImage)

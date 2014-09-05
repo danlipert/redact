@@ -42,30 +42,35 @@ def pickleHyperframes(hyperframes, sourceFilename):
     print 'Wrote Hyperframe JSON'
 
 def loadDetectors(FRAME_HEIGHT, FRAME_WIDTH):
+    '''
+    detectors = [
+        classes.Detector(path='data/haarcascade_frontalface_alt.xml', scale_factor=1.1, minimum_neighbors=0, 
+        region={'x':0, 'y':0, 'w':FRAME_WIDTH, 'h':FRAME_HEIGHT})]
+    '''
+    border_height = int(FRAME_HEIGHT * 0.15)
+    border_width = int(FRAME_WIDTH * 0.15)
     detectors = [
         #face detection on full frame
-        classes.Detector(path='data/haarcascade_frontalface_alt.xml', scale_factor=1.1, minimum_neighbors=0, 
+        classes.Detector(path='data/haarcascade_frontalface_alt.xml', scale_factor=1.05, minimum_neighbors=0, 
         region={'x':0, 'y':0, 'w':FRAME_WIDTH, 'h':FRAME_HEIGHT}),
         #upper body on full frame
         classes.Detector(path='data/haarcascade_upperbody.xml', scale_factor=1.05, minimum_neighbors=2, 
         region={'x':0, 'y':0, 'w':FRAME_WIDTH, 'h':FRAME_HEIGHT}),
         #mouth detection for top of frame
         #profile face detection on full frame
-        classes.Detector(path='data/haarcascade_profileface.xml', scale_factor=1.1, minimum_neighbors=0,
-        region={'x':0, 'y':0, 'w':FRAME_WIDTH, 'h':FRAME_HEIGHT})]
-
-    '''
-    classes.Detector(path='data/haarcascade_mcs_mouth.xml', scale_factor=1.3, minimum_neighbors=0,
-    region={'x':0, 'y':0, 'w':FRAME_WIDTH, 'h':100}),
-    #eye detection for bottom of frame
-    classes.Detector(path='data/haarcascade_eye.xml', scale_factor=1.3, minimum_neighbors=0,
-    region={'x':0, 'y':FRAME_HEIGHT-100, 'w':FRAME_WIDTH, 'h':100}),
-    #eye detection for left and right side of frame
-    classes.Detector(path='data/haarcascade_eye.xml', scale_factor=1.3, minimum_neighbors=0,
-    region={'x':0, 'y':0, 'w':100, 'h':FRAME_HEIGHT}),
-    classes.Detector(path='data/haarcascade_eye.xml', scale_factor=1.3, minimum_neighbors=0,
-    region={'x':FRAME_WIDTH-100, 'y':0, 'w':100, 'h':FRAME_HEIGHT}),
-    '''
+        classes.Detector(path='data/haarcascade_profileface.xml', scale_factor=1.1, minimum_neighbors=2,
+        region={'x':0, 'y':0, 'w':FRAME_WIDTH, 'h':FRAME_HEIGHT}),
+        classes.Detector(path='data/haarcascade_mcs_mouth.xml', scale_factor=1.2, minimum_neighbors=3,
+        region={'x':0, 'y':0, 'w':FRAME_WIDTH, 'h':border_height}),
+        #eye detection for bottom of frame
+        classes.Detector(path='data/haarcascade_eye.xml', scale_factor=1.2, minimum_neighbors=3,
+        region={'x':0, 'y':FRAME_HEIGHT-border_height, 'w':FRAME_WIDTH, 'h':border_height}),
+        #eye detection for left and right side of frame
+        classes.Detector(path='data/haarcascade_eye.xml', scale_factor=1.2, minimum_neighbors=3,
+        region={'x':0, 'y':0, 'w':border_width, 'h':FRAME_HEIGHT}),
+        classes.Detector(path='data/haarcascade_eye.xml', scale_factor=1.2, minimum_neighbors=3,
+        region={'x':FRAME_WIDTH-border_width, 'y':0, 'w':border_width, 'h':FRAME_HEIGHT})]
+    
     
     return detectors
 
@@ -75,15 +80,17 @@ def loadDetectorsForVideo(video):
     cv_fourcc_code, FRAME_RATE, FRAME_HEIGHT, FRAME_WIDTH, VIDEO_LENGTH = extract_capture_metadata(video)
     return loadDetectors(FRAME_HEIGHT, FRAME_WIDTH)
 
-def redactVideo(video, blurType, videoPath):
+def redactVideo(video, blurType, videoPath, output):
     """
     Redacts all faces in video.
     
     video -- the source video to be redacted.
     blurType -- the type of burring effect to use.
     """
-    
-    outputPath = '%s-haar.mov' % videoPath.split('.')[0]
+    if output == None:
+        outputPath = '%s-haar.mov' % videoPath.split('.')[0]
+    else:
+        outputPath = output
     
     print '%s applied to %s -> %s' % (blurType, videoPath, outputPath)
     
@@ -145,7 +152,7 @@ def redactVideo(video, blurType, videoPath):
 
 
 
-def redactVideoFromHyperframes(video, blurType, videoPath, hyperframes):
+def redactVideoFromHyperframes(video, blurType, videoPath, hyperframes, output):
     """
     Redacts all faces in video.
     
@@ -153,7 +160,13 @@ def redactVideoFromHyperframes(video, blurType, videoPath, hyperframes):
     blurType -- the type of burring effect to use.
     """
     
-    outputPath = '%s-haar.mov' % videoPath.split('.')[0]
+    print 'redacting...'
+    if output == None:
+        outputPath = '%s-haar.mov' % videoPath.split('.')[0]
+    else:
+        outPutPath = output
+    
+    print 'rendering to %s' % outputPath
     
     fourcc = cv2.cv.CV_FOURCC(*'mp4v')
     cv_fourcc_code, FRAME_RATE, FRAME_HEIGHT, FRAME_WIDTH, VIDEO_LENGTH = extract_capture_metadata(video)
@@ -163,11 +176,16 @@ def redactVideoFromHyperframes(video, blurType, videoPath, hyperframes):
 
     event.spreadAllFacesOnEvents(5, events)
 
-
+    print 'events created'
     
     if blurType == 'boxes':
+        print 'boxing video'
         blur.boxVideo(writer, events, video)
+    elif blurType == 'boxmob':
+        print 'boxing video with mobs'
+        blur.boxVideoMob(writer, events, video)
     else:
+        print 'blurring video'
         blur.blurVideo(writer, events, video)
 
 
@@ -185,6 +203,7 @@ def loadVideo(videoPath):
 def loadHyperframesFromJson(jsonPath):
     jsonData = open(jsonPath)
     hyperframes = json.load(jsonData)
+    print 'loaded hyperframes'
     return hyperframes
 
 def renderAdjustedVideo(path):
@@ -282,6 +301,7 @@ def chopFrames(path):
 
 def haarImage(path):
     frame = cv2.imread(path)
+    #loadDetectors takes height, width
     detectors = loadDetectors(frame.shape[0], frame.shape[1])
     for detector in detectors:
         print 'loading %s' % detector.path
@@ -306,13 +326,50 @@ def testEventSpread(path):
     print 'DONE SPREADING'
     print events
 
+def testRotate(path):
+    from hyperlayer.haar import rotate_image, rotate_point
+    #load image
+    frame = cv2.imread(path)
+    #haar it
+    #loadDetectors takes height, width
+    detectors = loadDetectors(frame.shape[0], frame.shape[1])
+    print 'frame shape is %s, %s' % (frame.shape[0], frame.shape[1])
+    for detector in detectors:
+        print 'loading %s' % detector.path
+        cascade = cv2.CascadeClassifier(detector.path)
+        detector.cascade = cascade
+    #faces = haar.detectFacesAnyColor(frame, frame, detectors)
+    #rotate image
+    angle = 35
+    r_frame = rotate_image(frame, angle)
+    #haar it
+    r_faces = haar.detectFacesAnyColor(r_frame, r_frame, detectors)
+    #render boxes
+    print 'boxes pre muxing: %s' % len(r_faces)
+    r_faces = haar.muxBoxes(r_faces)
+    print 'boxes post muxing: %s' % len(r_faces)
+    for i, box in enumerate(r_faces):
+        cv2.rectangle(r_frame, (box[0], box[1]), (box[0] + box[2], box[1]+box[3]), (100,100,255), thickness = 1, lineType=8, shift=0)
+        cv2.circle(r_frame, (box[0] + box[2]/2, box[1]+box[3]/2), 1, (100,100,255), thickness = 1, lineType=8, shift=0)
+    cv2.imshow('haar-rotate', r_frame)
+    
+    for i, eachBox in enumerate(r_faces):
+        #rotate points and render
+        box = rotate_point(eachBox, frame, -angle)
+        cv2.rectangle(frame, (box[0], box[1]), (box[0] + box[2], box[1]+box[3]), (100,100,255), thickness = 1, lineType=8, shift=0)
+        cv2.circle(frame, (box[0] + box[2]/2, box[1]+box[3]/2), 1, (100,100,255), thickness = 1, lineType=8, shift=0)
+    cv2.imshow('haar', frame)
+
+    while(1):
+        cv2.waitKey(25)
 
 @click.command()
 @click.argument('path')
 @click.argument('blurtype', default='motion')
 @click.option('--jsonpath', help='Json Hyperframe data for import.')
 @click.option('--rendertype', default='boxes', help='Render style.')
-def redact(path, blurtype, jsonpath, rendertype):
+@click.option('--output', default=None, help='Output file name.')
+def redact(path, blurtype, jsonpath, rendertype, output):
     if rendertype == 'adjusted':
         renderAdjustedVideo(path)
     elif rendertype == 'haartest':
@@ -323,16 +380,22 @@ def redact(path, blurtype, jsonpath, rendertype):
         haarImage(path)
     elif rendertype == 'testeventspread':
         testEventSpread(path)
+    elif rendertype == 'testrotate':
+        testRotate(path)
     elif jsonpath:
+        print 'loading video %s' % path
         video = loadVideo(path)
+        print 'loading json %s' % jsonpath
         hyperframes = loadHyperframesFromJson(jsonpath)
-        redactVideoFromHyperframes(video, blurtype, path, hyperframes)
+        print 'redacting video'
+        redactVideoFromHyperframes(video, blurtype, path, hyperframes, output)
+        print 'done!'
     elif blurtype != 'motion' and blurtype != 'boxes':
         show_usage()
         raise Exception('ERROR: Could not parse blur type "%s"' % arg)
     else:
         video = loadVideo(path)
-        redactVideo(video, blurtype, path)
+        redactVideo(video, blurtype, path, output)
     exit()
 
 if __name__ == '__main__':
