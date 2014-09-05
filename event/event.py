@@ -37,6 +37,7 @@ def generateEvents(hyperframes):
     return events
     
 def generateSimpleEvents(hyperframes):
+    print 'generating simple events'
     events = []
     for i, eachHyperframe in enumerate(hyperframes):
         events.append({'faces':eachHyperframe['faces'], 'type':'move'})

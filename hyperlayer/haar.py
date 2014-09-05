@@ -6,7 +6,8 @@ from util.image import isHumanColor
 def rotate_image(image, angle):
     if angle == 0: return image
     height, width = image.shape[:2]
-    rot_mat = cv2.getRotationMatrix2D((width/2, height/2), angle, 0.9)
+    #changed scale from 0.9 to 1.0... why scale?
+    rot_mat = cv2.getRotationMatrix2D((width/2, height/2), angle, 1.0)
     result = cv2.warpAffine(image, rot_mat, (width, height), flags=cv2.INTER_LINEAR)
     return result
 
@@ -18,11 +19,80 @@ def rotate_point(pos, img, angle):
     newy = -x*sin(radians(angle)) + y*cos(radians(angle)) + img.shape[0]*0.4
     return int(newx), int(newy), pos[2], pos[3]
 
+def rotatePoint(centerPoint,point,angle):
+    """Rotates a point around another centerPoint. Angle is in degrees.
+    Rotation is counter-clockwise"""
+    #http://stackoverflow.com/questions/20023209/python-function-for-rotating-2d-objects
+    angle = radians(angle)
+    temp_point = point[0]-centerPoint[0] , point[1]-centerPoint[1]
+    temp_point = ( temp_point[0]*cos(angle)-temp_point[1]*sin(angle) , temp_point[0]*sin(angle)+temp_point[1]*cos(angle))
+    temp_point = temp_point[0]+centerPoint[0] , temp_point[1]+centerPoint[1]
+    return temp_point
+    
+def rotate_box(box, img, angle):
+    boxX = box[0]
+    boxY = box[1]
+    boxWidth = box[2]
+    boxHeight = box[3]
+    centerPoint = [boxX+(boxWidth/2), boxY+(boxHeight/2)]
+    height = img.shape[0]
+    width = img.shape[1]
+    imageCenter = [width/2, height/2]
+    newCenterPoint = rotatePoint(centerPoint, imageCenter, angle)
+    newBox = [newCenterPoint[0]-boxWidth/2, newCenterPoint[1]-boxHeight/2, boxWidth, boxHeight]
+    return newBox
+    
 def ints_only(box):
     return [int(box[0]), int(box[1]), int(box[2]), int(box[3])]
 
 def correct_cropping_region(box, region):
     return [box[0]+region['x'], box[1]+region['y'], box[2], box[3]]
+
+def detectFacesAnyColor(image, colorImage, detectors):
+    """
+    Returns list of bounding boxes (x, y, w, h) containing human faces.
+    
+    image -- input image to be detected
+    """
+
+    #convert image to numpy array
+    image = numpy.array(image)
+    all_boxes = []
+    #check different angles
+    for detector in detectors:
+        #crop image for region
+        region = detector.region
+        crop_img = image[region['y']:region['y']+region['h'], region['x']:region['x']+region['w']] # Crop from x, y, w, h -> 100, 200, 300, 400
+        # NOTE: its img[y: y + h, x: x + w] and *not* img[x: x + w, y: y + h]
+        #setup parameters
+        detector_scale_factor = detector.scale_factor
+        detector_minimum_neighbors = detector.minimum_neighbors
+        detector_minimum_size_square = detector.minimum_size_square
+        detector_maximum_size_square = detector.maximum_size_square
+        cascade = detector.cascade
+        
+        for angle in [0, -25, 25]:
+            r_image = rotate_image(crop_img, angle)
+            boxes = cascade.detectMultiScale(r_image, scaleFactor=detector_scale_factor, minNeighbors=detector_minimum_neighbors, minSize=(detector_minimum_size_square, detector_minimum_size_square), maxSize=(detector_maximum_size_square, detector_maximum_size_square), flags=cv2.cv.CV_HAAR_SCALE_IMAGE)
+            #convert to regular array
+            boxes = list(boxes)
+            if len(boxes):
+                for box in boxes:
+                    #box = rotate_box(box, image, -angle)
+                    box = correct_cropping_region(box, region)
+                    box = ints_only(box)
+                    all_boxes.append(box)
+                    print '%s faces found in frame' % len(all_boxes)
+        '''
+        #testing
+        boxes = cascade.detectMultiScale(crop_img, scaleFactor=detector_scale_factor, minNeighbors=detector_minimum_neighbors, minSize=(detector_minimum_size_square, detector_minimum_size_square), maxSize=(detector_maximum_size_square, detector_maximum_size_square), flags=cv2.cv.CV_HAAR_SCALE_IMAGE)
+        boxes = list(boxes)
+        if len(boxes):
+            for box in boxes:
+                box = ints_only(box)
+                all_boxes.append(box)
+        '''
+    return all_boxes
 
 def detectFaces(image, colorImage, detectors):
     """
@@ -46,7 +116,7 @@ def detectFaces(image, colorImage, detectors):
         detector_minimum_size_square = detector.minimum_size_square
         detector_maximum_size_square = detector.maximum_size_square
         cascade = detector.cascade
-        for angle in [0, -25, 25]:
+        for angle in [0, 12, -12, -25, 25]:
             r_image = rotate_image(crop_img, angle)
             boxes = cascade.detectMultiScale(r_image, scaleFactor=detector_scale_factor, minNeighbors=detector_minimum_neighbors, minSize=(detector_minimum_size_square, detector_minimum_size_square), maxSize=(detector_maximum_size_square, detector_maximum_size_square), flags=cv2.cv.CV_HAAR_SCALE_IMAGE)
             #convert to regular array
@@ -58,9 +128,12 @@ def detectFaces(image, colorImage, detectors):
                     box = correct_cropping_region(box, region)
                     box = ints_only(box)
                     croppedFace = colorImage[box[1]:box[1]+box[3], box[0]:box[0]+box[2]]
-                    if isHumanColor(croppedFace):
-                        all_boxes.append(box)
-                        print '%s faces found in frame' % len(all_boxes)
+                    try:
+                        if isHumanColor(croppedFace):
+                            all_boxes.append(box)
+                            print '%s faces found in frame' % len(all_boxes)
+                    except:
+                        pass
     return all_boxes
 
 def boxesOverlap(boxA, boxB):
@@ -141,17 +214,23 @@ def muxBoxes(boxes, minSize=(0,0)):
     minSize -- boxes below this size (both width and height) will be discarded
     """
     return boxes
-    '''
     muxedBoxes = []
     
     for eachBox in boxes:
+        print 'checking box'
         boxOverlapped = False
         for eachOtherBox in boxes:
             if boxesOverlap(eachBox, eachOtherBox) and eachBox != eachOtherBox:
                 boxOverlapped = True
+                print 'boxes overlap'
                 muxedBoxes.append(combinedBox(eachBox, eachOtherBox))
+                #remove extra boxes
+                boxes.remove(eachBox)
+                boxes.remove(eachOtherBox)
+                return muxBoxes(boxes + muxedBoxes)
+                
         if boxOverlapped == False:
-            muxedboxes.append(eachBox)
+            muxedBoxes.append(eachBox)
 
-    return boxes
-    '''
+    return muxedBoxes
+    
