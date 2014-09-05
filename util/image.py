@@ -10,6 +10,8 @@ def adjustImage(image):
     type -- string representing adjustment type
     """
     image = Image.fromarray(image)
+    #brighten
+    image = image.point(lambda p: p * 1.2)
     image = ImageOps.grayscale(image)
     image = ImageOps.equalize(image)
     #image = ImageOps.autocontrast(image)
