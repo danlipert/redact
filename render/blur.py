@@ -2,7 +2,7 @@ import cv2
 from PIL import Image, ImageFilter
 import numpy
 from hyperlayer.classes import Mob, MobManager
-from util.image import isHumanColor
+
 
 def blurVideo(writer, events, video, blurType='motion'):
     """
@@ -33,18 +33,17 @@ def blurVideo(writer, events, video, blurType='motion'):
 
                     eachFaceRect = eachFace
                     ic = frameImage.crop((eachFaceRect[0], eachFaceRect[1], eachFaceRect[0]+eachFaceRect[2], eachFaceRect[1]+eachFaceRect[3]))
-                    for i in range(20):  # with the BLUR filter, you can blur a few times to get the effect you're seeking
+
+                    for i in range(5):  # with the BLUR filter, you can blur a few times to get the effect you're seeking
                         ic = ic.filter(ImageFilter.BLUR)
                     frameImage.paste(ic, (eachFaceRect[0], eachFaceRect[1]))
                     blurredImage = frameImage
-                    #blurredImage = frameImage
-                    blurredFrame = numpy.array(blurredImage)
-                #cv2.rectangle(frame, (eachFaceRect[0], eachFaceRect[1]), (eachFaceRect[0] + eachFaceRect[2], eachFaceRect[1]+eachFaceRect[3]), (255,100,100), thickness = 1, lineType=8, shift=0)
 
-            #eachFaceRect = event['faces']
-            #cv2.rectangle(frame, (eachFaceRect[0], eachFaceRect[1]), (eachFaceRect[0] + eachFaceRect[2], eachFaceRect[1]+eachFaceRect[3]), (255,100,100), thickness = 1, lineType=8, shift=0)
-        #drawVisualization(source_frame, frame)
-        
+                    blurredFrame = numpy.array(blurredImage)
+            else:
+                #write frame normally
+                blurredFrame = frame
+
         #write frame
         print 'writing frame %s' % eventNumber
         writer.write(blurredFrame)
@@ -74,8 +73,7 @@ def boxVideo(writer, events, video):
             if len(faces) > 0:
                 for eachFace in faces:
                     eachFaceRect = eachFace
-                    #croppedImage = frameImage.crop((eachFaceRect[0], eachFaceRect[1], eachFaceRect[0]+eachFaceRect[2], eachFaceRect[1]+eachFaceRect[3]))
-                    #if isHumanColor(croppedImage):
+                    croppedImage = frameImage.crop((eachFaceRect[0], eachFaceRect[1], eachFaceRect[0]+eachFaceRect[2], eachFaceRect[1]+eachFaceRect[3]))
                     cv2.rectangle(frame, (eachFaceRect[0], eachFaceRect[1]), (eachFaceRect[0] + eachFaceRect[2], eachFaceRect[1]+eachFaceRect[3]), (255,100,100), thickness = 1, lineType=8, shift=0)
 
         #write frame
