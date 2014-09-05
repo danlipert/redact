@@ -58,9 +58,12 @@ def detectFaces(image, colorImage, detectors):
                     box = correct_cropping_region(box, region)
                     box = ints_only(box)
                     croppedFace = colorImage[box[1]:box[1]+box[3], box[0]:box[0]+box[2]]
-                    if isHumanColor(croppedFace):
-                        all_boxes.append(box)
-                        print '%s faces found in frame' % len(all_boxes)
+                    try:
+                        if isHumanColor(croppedFace):
+                            all_boxes.append(box)
+                            print '%s faces found in frame' % len(all_boxes)
+                    except:
+                        pass
     return all_boxes
 
 def boxesOverlap(boxA, boxB):
